@@ -3,9 +3,15 @@ package hello.jdbc.service;
 import static hello.jdbc.connection.ConnectionConst.PASSWORD;
 import static hello.jdbc.connection.ConnectionConst.URL;
 import static hello.jdbc.connection.ConnectionConst.USERNAME;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import hello.jdbc.domain.Member;
 import hello.jdbc.repository.MemberRepositoryV1;
+import java.sql.SQLException;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 /**
@@ -25,6 +31,25 @@ class MemberServiceV1Test {
     DriverManagerDataSource dataSource = new DriverManagerDataSource(URL, USERNAME, PASSWORD);
     memberRepository = new MemberRepositoryV1(dataSource);
     memberService = new MemberServiceV1(memberRepository);
+  }
+
+  @Test
+  @DisplayName("정상 이체")
+  void accountTransfer() throws SQLException {
+    // given
+    Member memberA = new Member(MEMBER_A, 10_000);
+    Member memberB = new Member(MEMBER_B, 10_000);
+    memberRepository.save(memberA);
+    memberRepository.save(memberB);
+
+    //when
+    memberService.accountTransfer(memberA.getMemberId(), memberB.getMemberId(), 20_000);
+
+    //then
+    Member findMemberA = memberRepository.findById(memberA.getMemberId());
+    Member findMemberB = memberRepository.findById(memberB.getMemberId());
+    assertThat(findMemberA.getMoney()).isEqualTo(8_000);
+    assertThat(findMemberB.getMoney()).isEqualTo(12_000);
   }
 
 }
