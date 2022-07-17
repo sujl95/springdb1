@@ -81,6 +81,34 @@ public class MemberRepositoryV1 {
     }
   }
 
+  public Member findById(Connection con, String memberId) throws SQLException {
+    String sql = "select * from member where member_id  = ?";
+
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+    try {
+      pstmt = con.prepareStatement(sql);
+      pstmt.setString(1, memberId);
+      rs = pstmt.executeQuery();
+
+      if (rs.next()) {
+        Member member = new Member();
+        member.setMemberId(rs.getString("member_id"));
+        member.setMoney(rs.getInt("money"));
+        return member;
+      } else {
+        throw new NoSuchElementException("member not found memberId=" + memberId);
+      }
+
+    } catch (SQLException e) {
+      log.error("db error", e);
+      throw e;
+    } finally {
+      JdbcUtils.closeResultSet(rs);
+      JdbcUtils.closeStatement(pstmt);
+    }
+  }
+
   public Member findById(String memberId) throws SQLException {
     String sql = "select * from member where member_id  = ?";
 
